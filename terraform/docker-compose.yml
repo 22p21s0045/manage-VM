@@ -1,43 +1,36 @@
 services:
   terraform:
-    build: .
+    image: hashicorp/terraform:1.6
     volumes:
       - .:/workspace
-      - ./terraform.tfstate:/workspace/terraform.tfstate
-      - ../ansible/inventory:/workspace/../ansible/inventory
+      - ../ansible/inventory:/ansible/inventory
     working_dir: /workspace
-    entrypoint: [ "terraform" ]
-    command: [ "plan" ]
 
   init:
-    build: .
+    image: hashicorp/terraform:1.6
     volumes:
       - .:/workspace
     working_dir: /workspace
-    entrypoint: [ "terraform" ]
     command: [ "init" ]
 
   plan:
-    build: .
+    image: hashicorp/terraform:1.6
     volumes:
       - .:/workspace
     working_dir: /workspace
-    entrypoint: [ "terraform" ]
     command: [ "plan" ]
 
   apply:
-    build: .
+    image: hashicorp/terraform:1.6
     volumes:
       - .:/workspace
-      - ../ansible/inventory:/workspace/../ansible/inventory
+      - ../ansible/inventory:/ansible/inventory
     working_dir: /workspace
-    entrypoint: [ "terraform" ]
     command: [ "apply", "-auto-approve" ]
 
   destroy:
-    build: .
+    image: hashicorp/terraform:1.6
     volumes:
       - .:/workspace
     working_dir: /workspace
-    entrypoint: [ "terraform" ]
     command: [ "destroy", "-auto-approve" ]

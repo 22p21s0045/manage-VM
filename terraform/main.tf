@@ -5,24 +5,30 @@ resource "proxmox_vm_qemu" "docker_host" {
   clone       = var.template_name
   
   # Basic VM Settings
-  agent       = 1
+  agent                  = 0
+  define_connection_info = false
   os_type     = "cloud-init"
   cores       = var.vm_cores
   sockets     = 1
-  cpu         = "host"
+  cpu_type    = "host"
   memory      = var.vm_memory
   scsihw      = "virtio-scsi-pci"
   bootdisk    = "scsi0"
 
-  disk {
-    slot    = 0
-    size    = var.vm_disk_size
-    type    = "scsi"
-    storage = "local-lvm" # Change this if using Ceph or other storage
-    iothread = 1
+  disks {
+    scsi {
+      scsi0 {
+        disk {
+          size    = var.vm_disk_size
+          storage = "local-lvm"
+          iothread = true
+        }
+      }
+    }
   }
 
   network {
+    id     = 0
     model  = "virtio"
     bridge = "vmbr0"
   }

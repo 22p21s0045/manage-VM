@@ -1,6 +1,6 @@
 proxmox_api_url = "https://10.13.104.211:8006/api2/json"
 proxmox_api_token_id = "root@pam!terraform"
-proxmox_api_token_secret = "5900448e-6d18-453d-9abe-0a74941cf876"
+proxmox_api_token_secret = "0e0f1e68-f079-442b-b440-5a90e58e4449"
 target_node = "pureewat"
 template_name = "ubuntu-cloud-template"
 vm_count = 1

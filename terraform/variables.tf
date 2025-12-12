@@ -3,14 +3,13 @@ variable "proxmox_api_url" {
   type        = string
 }
 
-variable "proxmox_api_token_id" {
-  description = "The Proxmox API Token ID (e.g. root@pam!terraform)"
+variable "proxmox_user" {
+  description = "Proxmox username (e.g. root@pam)"
   type        = string
-  sensitive   = true
 }
 
-variable "proxmox_api_token_secret" {
-  description = "The Proxmox API Token Secret"
+variable "proxmox_password" {
+  description = "Proxmox password"
   type        = string
   sensitive   = true
 }

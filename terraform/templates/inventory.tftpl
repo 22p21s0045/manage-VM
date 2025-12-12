@@ -1,6 +1,6 @@
 [proxmox_vms]
 %{ for vm in vms ~}
-${vm.name} ansible_host=${vm.default_ipv4_address}
+${vm.name} ansible_host=${vm.default_ipv4_address != null ? vm.default_ipv4_address : regex("ip=([^/,]+)", vm.ipconfig0)[0]}
 %{ endfor ~}
 
 [all:vars]
