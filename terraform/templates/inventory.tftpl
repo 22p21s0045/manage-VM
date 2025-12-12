@@ -1,0 +1,8 @@
+[proxmox_vms]
+%{ for vm in vms ~}
+${vm.name} ansible_host=${vm.default_ipv4_address} ansible_user=${ssh_user}
+%{ endfor ~}
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
