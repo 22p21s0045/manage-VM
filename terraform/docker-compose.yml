@@ -1,0 +1,43 @@
+services:
+  terraform:
+    build: .
+    volumes:
+      - .:/workspace
+      - ./terraform.tfstate:/workspace/terraform.tfstate
+      - ../ansible/inventory:/workspace/../ansible/inventory
+    working_dir: /workspace
+    entrypoint: [ "terraform" ]
+    command: [ "plan" ]
+
+  init:
+    build: .
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    entrypoint: [ "terraform" ]
+    command: [ "init" ]
+
+  plan:
+    build: .
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    entrypoint: [ "terraform" ]
+    command: [ "plan" ]
+
+  apply:
+    build: .
+    volumes:
+      - .:/workspace
+      - ../ansible/inventory:/workspace/../ansible/inventory
+    working_dir: /workspace
+    entrypoint: [ "terraform" ]
+    command: [ "apply", "-auto-approve" ]
+
+  destroy:
+    build: .
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    entrypoint: [ "terraform" ]
+    command: [ "destroy", "-auto-approve" ]
