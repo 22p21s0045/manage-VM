@@ -4,3 +4,5 @@ proxmox_api_token_secret = "5900448e-6d18-453d-9abe-0a74941cf876"
 target_node = "pureewat"
 template_name = "ubuntu-cloud-template"
 vm_count = 1
+vm_ip = "10.13.104.62/24"
+vm_gateway = "10.13.104.254"

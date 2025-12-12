@@ -56,3 +56,14 @@ variable "vm_disk_size" {
   default     = "20G"
 }
 
+variable "vm_ip" {
+  description = "Static IP address with CIDR (e.g., 10.13.104.100/24). Leave empty for DHCP."
+  type        = string
+  default     = ""
+}
+
+variable "vm_gateway" {
+  description = "Gateway IP address (e.g., 10.13.104.1)"
+  type        = string
+  default     = ""
+}

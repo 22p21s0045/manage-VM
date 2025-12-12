@@ -33,7 +33,7 @@ resource "proxmox_vm_qemu" "docker_host" {
     ]
   }
 
-  ipconfig0 = "ip=dhcp"
+  ipconfig0 = var.vm_ip != "" ? "ip=${var.vm_ip},gw=${var.vm_gateway}" : "ip=dhcp"
 }
 
 # Auto-generate Ansible Inventory
@@ -41,7 +41,6 @@ resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.tftpl",
     {
       vms = proxmox_vm_qemu.docker_host
-      ssh_user = var.ssh_user
     }
   )
   filename = "../ansible/inventory/hosts.ini"
