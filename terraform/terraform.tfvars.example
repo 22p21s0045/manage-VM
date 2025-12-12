@@ -3,5 +3,4 @@ proxmox_api_token_id = "root@pam!terraform"
 proxmox_api_token_secret = "5900448e-6d18-453d-9abe-0a74941cf876"
 target_node = "pureewat"
 template_name = "ubuntu-cloud-template"
-ssh_password = "your-password-here"
 vm_count = 1

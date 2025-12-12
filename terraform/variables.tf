@@ -56,14 +56,3 @@ variable "vm_disk_size" {
   default     = "20G"
 }
 
-variable "ssh_password" {
-  description = "Password for the default user"
-  type        = string
-  sensitive   = true
-}
-
-variable "ssh_user" {
-  description = "Default SSH user for the VM"
-  type        = string
-  default     = "ubuntu"
-}

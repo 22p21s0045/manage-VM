@@ -33,11 +33,7 @@ resource "proxmox_vm_qemu" "docker_host" {
     ]
   }
 
-  # Cloud-Init Settings
   ipconfig0 = "ip=dhcp"
-  
-  ciuser  = var.ssh_user
-  cipassword = var.ssh_password
 }
 
 # Auto-generate Ansible Inventory

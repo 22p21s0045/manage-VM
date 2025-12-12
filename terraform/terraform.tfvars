@@ -3,7 +3,6 @@ proxmox_api_token_id = "root@pam!terraform"
 proxmox_api_token_secret = "5900448e-6d18-453d-9abe-0a74941cf876"
 target_node = "pureewat"
 template_name = "ubuntu-2204-cloudinit-template"
-ssh_public_key = "ssh-rsa YOUR_PUBLIC_KEY_HERE"
 
 vm_count = 1
 vm_memory = 4096
