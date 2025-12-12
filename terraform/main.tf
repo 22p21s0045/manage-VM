@@ -37,7 +37,7 @@ resource "proxmox_vm_qemu" "docker_host" {
   ipconfig0 = "ip=dhcp"
   
   ciuser  = var.ssh_user
-  sshkeys = var.ssh_public_key
+  cipassword = var.ssh_password
 }
 
 # Auto-generate Ansible Inventory

@@ -56,9 +56,10 @@ variable "vm_disk_size" {
   default     = "20G"
 }
 
-variable "ssh_public_key" {
-  description = "SSH Public Key to import into the VM"
+variable "ssh_password" {
+  description = "Password for the default user"
   type        = string
+  sensitive   = true
 }
 
 variable "ssh_user" {
