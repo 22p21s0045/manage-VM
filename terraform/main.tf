@@ -5,7 +5,7 @@ resource "proxmox_vm_qemu" "docker_host" {
   clone       = var.template_name
   
   # Basic VM Settings
-  agent                  = 0
+  agent                  = 1
   define_connection_info = false
   os_type     = "cloud-init"
   cores       = var.vm_cores
@@ -15,6 +15,12 @@ resource "proxmox_vm_qemu" "docker_host" {
   scsihw      = "virtio-scsi-pci"
   bootdisk    = "scsi0"
 
+  # Serial port for console access
+  serial {
+    id   = 0
+    type = "socket"
+  }
+
   disks {
     scsi {
       scsi0 {
@@ -22,6 +28,13 @@ resource "proxmox_vm_qemu" "docker_host" {
           size    = var.vm_disk_size
           storage = "local-lvm"
           iothread = true
+        }
+      }
+    }
+    ide {
+      ide2 {
+        cloudinit {
+          storage = "local-lvm"
         }
       }
     }
@@ -39,7 +52,14 @@ resource "proxmox_vm_qemu" "docker_host" {
     ]
   }
 
-  ipconfig0 = var.vm_ip != "" ? "ip=${var.vm_ip},gw=${var.vm_gateway}" : "ip=dhcp"
+  # VGA setting for cloud-init
+  vga {
+    type = "serial0"
+  }
+
+  # Cloud-init network configuration
+  ipconfig0  = var.vm_ip != "" ? "ip=${var.vm_ip},gw=${var.vm_gateway}" : "ip=dhcp"
+  nameserver = "8.8.8.8"
 }
 
 # Auto-generate Ansible Inventory
