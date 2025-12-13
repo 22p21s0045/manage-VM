@@ -1,0 +1,17 @@
+services:
+  ansible:
+    build: .
+    network_mode: host
+    volumes:
+      - ./ansible:/ansible
+      - ./ssh/id_ed25519:/tmp/id_ed25519:ro
+    working_dir: /ansible
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=False
+    command: >
+      sh -c "mkdir -p /root/.ssh &&
+             cp /tmp/id_ed25519 /root/.ssh/id_ed25519 &&
+             chmod 600 /root/.ssh/id_ed25519 &&
+             ansible-playbook -i inventory/hosts.ini playbooks/install-docker.yml"
+    tty: true
+    stdin_open: true

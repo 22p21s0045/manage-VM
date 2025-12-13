@@ -102,3 +102,9 @@ variable "ssh_password" {
   sensitive   = true
   default     = ""
 }
+
+variable "ssh_public_key" {
+  description = "SSH public key to inject via cloud-init"
+  type        = string
+  default     = ""
+}

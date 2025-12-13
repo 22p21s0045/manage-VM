@@ -60,6 +60,10 @@ resource "proxmox_vm_qemu" "docker_host" {
   ipconfig0  = var.vm_ip != "" ? "ip=${var.vm_ip},gw=${var.vm_gateway}" : "ip=dhcp"
   nameserver = var.vm_nameserver
 
+  # Cloud-init user and SSH key
+  ciuser  = var.ssh_user
+  sshkeys = var.ssh_public_key
+
   # Ignore network MAC address changes
   lifecycle {
     ignore_changes = [

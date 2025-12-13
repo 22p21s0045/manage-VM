@@ -22,5 +22,6 @@ vm_gateway    = "10.13.104.254"
 vm_nameserver = "8.8.8.8"
 
 # SSH/Ansible Settings
-ssh_user     = "sysadmin"
-ssh_password = "int53101"
+ssh_user       = "sysadmin"
+ssh_password   = "int53101"
+ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPoby3xBW0ZNi3rK/vOY4sMmwoZI+J5GOGRpjYtM9ro0 proxmox-node"
