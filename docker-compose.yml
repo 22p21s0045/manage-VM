@@ -12,6 +12,6 @@ services:
       sh -c "mkdir -p /root/.ssh &&
              cp /tmp/id_ed25519 /root/.ssh/id_ed25519 &&
              chmod 600 /root/.ssh/id_ed25519 &&
-             ansible-playbook -i inventory/hosts.ini playbooks/install-docker.yml"
+             ansible-playbook -i inventory/hosts.ini playbooks/site.yml"
     tty: true
     stdin_open: true

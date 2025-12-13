@@ -1,0 +1,10 @@
+---
+# Main playbook that runs all playbooks in order
+- name: Install Docker
+  import_playbook: install-docker.yml
+
+- name: Deploy Demo Project
+  import_playbook: deploy-project.yml
+
+- name: Deploy Monitoring Tools
+  import_playbook: deploy-monitoring.yml
