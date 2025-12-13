@@ -1,3 +1,4 @@
+# Proxmox Connection
 variable "proxmox_api_url" {
   description = "The URL of the Proxmox API (e.g. https://192.168.1.100:8006/api2/json)"
   type        = string
@@ -22,9 +23,10 @@ variable "target_node" {
 variable "template_name" {
   description = "The name of the VM template to clone"
   type        = string
-  default     = "ubuntu-2204-cloudinit-template"
+  default     = "ubuntu-template-2"
 }
 
+# VM Count and Naming
 variable "vm_count" {
   description = "Number of VMs to create"
   type        = number
@@ -37,10 +39,11 @@ variable "vm_name_prefix" {
   default     = "docker-node"
 }
 
+# VM Hardware Settings (should match your template)
 variable "vm_cores" {
   description = "Number of CPU cores"
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "vm_memory" {
@@ -50,11 +53,24 @@ variable "vm_memory" {
 }
 
 variable "vm_disk_size" {
-  description = "Disk size in GB"
+  description = "Disk size (e.g., 40G)"
   type        = string
-  default     = "20G"
+  default     = "40G"
 }
 
+variable "vm_storage" {
+  description = "Storage location for VM disks"
+  type        = string
+  default     = "local-lvm"
+}
+
+variable "vm_bridge" {
+  description = "Network bridge"
+  type        = string
+  default     = "vmbr0"
+}
+
+# Network Configuration (IP settings)
 variable "vm_ip" {
   description = "Static IP address with CIDR (e.g., 10.13.104.100/24). Leave empty for DHCP."
   type        = string
@@ -62,7 +78,13 @@ variable "vm_ip" {
 }
 
 variable "vm_gateway" {
-  description = "Gateway IP address (e.g., 10.13.104.1)"
+  description = "Gateway IP address (e.g., 10.13.104.254)"
   type        = string
   default     = ""
+}
+
+variable "vm_nameserver" {
+  description = "DNS nameserver IP address"
+  type        = string
+  default     = "8.8.8.8"
 }

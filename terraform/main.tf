@@ -3,30 +3,28 @@ resource "proxmox_vm_qemu" "docker_host" {
   name        = "${var.vm_name_prefix}-${count.index + 1}"
   target_node = var.target_node
   clone       = var.template_name
+  full_clone  = true
   
-  # Basic VM Settings
+  # Basic VM Settings - inherit from template or use defaults
   agent                  = 1
   define_connection_info = false
-  os_type     = "cloud-init"
-  cores       = var.vm_cores
-  sockets     = 1
-  cpu_type    = "host"
-  memory      = var.vm_memory
-  scsihw      = "virtio-scsi-pci"
-  bootdisk    = "scsi0"
+  os_type                = "cloud-init"
+  
+  # Hardware settings - must be specified, provider won't read from template
+  cores    = var.vm_cores
+  sockets  = 1
+  cpu_type = "host"
+  memory   = var.vm_memory
+  scsihw   = "virtio-scsi-pci"
+  bootdisk = "scsi0"
 
-  # Serial port for console access
-  serial {
-    id   = 0
-    type = "socket"
-  }
-
+  # Disk configuration - required to properly use cloned disk
   disks {
     scsi {
       scsi0 {
         disk {
-          size    = var.vm_disk_size
-          storage = "local-lvm"
+          size     = var.vm_disk_size
+          storage  = var.vm_storage
           iothread = true
         }
       }
@@ -34,22 +32,23 @@ resource "proxmox_vm_qemu" "docker_host" {
     ide {
       ide2 {
         cloudinit {
-          storage = "local-lvm"
+          storage = var.vm_storage
         }
       }
     }
   }
 
+  # Network
   network {
     id     = 0
     model  = "virtio"
-    bridge = "vmbr0"
+    bridge = var.vm_bridge
   }
 
-  lifecycle {
-    ignore_changes = [
-      network,
-    ]
+  # Serial port for console access
+  serial {
+    id   = 0
+    type = "socket"
   }
 
   # VGA setting for cloud-init
@@ -57,9 +56,16 @@ resource "proxmox_vm_qemu" "docker_host" {
     type = "serial0"
   }
 
-  # Cloud-init network configuration
+  # Cloud-init network configuration (IP address)
   ipconfig0  = var.vm_ip != "" ? "ip=${var.vm_ip},gw=${var.vm_gateway}" : "ip=dhcp"
-  nameserver = "8.8.8.8"
+  nameserver = var.vm_nameserver
+
+  # Ignore network MAC address changes
+  lifecycle {
+    ignore_changes = [
+      network,
+    ]
+  }
 }
 
 # Auto-generate Ansible Inventory
