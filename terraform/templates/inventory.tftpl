@@ -4,5 +4,8 @@ ${vm.name} ansible_host=${vm.default_ipv4_address != null ? vm.default_ipv4_addr
 %{ endfor ~}
 
 [all:vars]
+ansible_user=${ssh_user}
+ansible_password=${ssh_password}
+ansible_become_password=${ssh_password}
 ansible_python_interpreter=/usr/bin/python3
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'

@@ -72,7 +72,9 @@ resource "proxmox_vm_qemu" "docker_host" {
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.tftpl",
     {
-      vms = proxmox_vm_qemu.docker_host
+      vms          = proxmox_vm_qemu.docker_host
+      ssh_user     = var.ssh_user
+      ssh_password = var.ssh_password
     }
   )
   filename = "../ansible/inventory/hosts.ini"

@@ -20,3 +20,7 @@ vm_bridge    = "vmbr0"
 vm_ip         = "10.13.104.100/24"
 vm_gateway    = "10.13.104.254"
 vm_nameserver = "8.8.8.8"
+
+# SSH/Ansible Settings
+ssh_user     = "sysadmin"
+ssh_password = "int53101"

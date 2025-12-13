@@ -88,3 +88,17 @@ variable "vm_nameserver" {
   type        = string
   default     = "8.8.8.8"
 }
+
+# SSH/Ansible Settings
+variable "ssh_user" {
+  description = "SSH username for Ansible connection"
+  type        = string
+  default     = "ubuntu"
+}
+
+variable "ssh_password" {
+  description = "SSH password for Ansible connection"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
