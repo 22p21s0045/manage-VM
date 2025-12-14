@@ -1,6 +1,6 @@
 ---
 - name: Deploy Demo Project
-  hosts: all
+  hosts: docker_nodes
   become: true
   vars:
     project_repo: https://github.com/22p21s0045/int531-demo-project.git

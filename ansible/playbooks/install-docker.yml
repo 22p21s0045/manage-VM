@@ -1,6 +1,6 @@
 ---
 - name: Install Docker
-  hosts: all
+  hosts: docker_nodes
   become: true
   vars:
     docker_packages:
