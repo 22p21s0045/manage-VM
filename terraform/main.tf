@@ -72,11 +72,86 @@ resource "proxmox_vm_qemu" "docker_host" {
   }
 }
 
+# Monitor VM (Prometheus + Grafana)
+resource "proxmox_vm_qemu" "monitor_host" {
+  name        = "monitor-node"
+  target_node = var.target_node
+  clone       = var.template_name
+  full_clone  = true
+  
+  # Basic VM Settings
+  agent                  = 1
+  define_connection_info = false
+  os_type                = "cloud-init"
+  
+  # Hardware settings - same specs as docker_host
+  cores    = var.vm_cores
+  sockets  = 1
+  cpu_type = "host"
+  memory   = var.vm_memory
+  scsihw   = "virtio-scsi-pci"
+  bootdisk = "scsi0"
+
+  # Disk configuration
+  disks {
+    scsi {
+      scsi0 {
+        disk {
+          size     = var.vm_disk_size
+          storage  = var.vm_storage
+          iothread = true
+        }
+      }
+    }
+    ide {
+      ide2 {
+        cloudinit {
+          storage = var.vm_storage
+        }
+      }
+    }
+  }
+
+  # Network
+  network {
+    id     = 0
+    model  = "virtio"
+    bridge = var.vm_bridge
+  }
+
+  # Serial port for console access
+  serial {
+    id   = 0
+    type = "socket"
+  }
+
+  # VGA setting for cloud-init
+  vga {
+    type = "serial0"
+  }
+
+  # Cloud-init network configuration - Fixed IP for Prometheus
+  ipconfig0  = "ip=10.13.104.101/24,gw=${var.vm_gateway}"
+  nameserver = var.vm_nameserver
+
+  # Cloud-init user and SSH key
+  ciuser  = var.ssh_user
+  sshkeys = var.ssh_public_key
+
+  # Ignore network MAC address changes
+  lifecycle {
+    ignore_changes = [
+      network,
+    ]
+  }
+}
+
 # Auto-generate Ansible Inventory
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.tftpl",
     {
-      vms          = proxmox_vm_qemu.docker_host
+      docker_vms   = proxmox_vm_qemu.docker_host
+      monitor_vm   = proxmox_vm_qemu.monitor_host
       ssh_user     = var.ssh_user
       ssh_password = var.ssh_password
     }

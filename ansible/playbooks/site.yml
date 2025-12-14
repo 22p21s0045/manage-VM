@@ -1,10 +1,16 @@
 ---
 # Main playbook that runs all playbooks in order
-- name: Install Docker
+
+# Docker nodes setup
+- name: Install Docker on Docker Nodes
   import_playbook: install-docker.yml
 
-- name: Deploy Demo Project
+- name: Deploy Node Exporter on Docker Nodes
+  import_playbook: deploy-monitoring.yml
+
+- name: Deploy Project on Docker Nodes
   import_playbook: deploy-project.yml
 
-- name: Deploy Monitoring Tools
-  import_playbook: deploy-monitoring.yml
+# Monitor node setup
+- name: Deploy Prometheus and Grafana on Monitor Node
+  import_playbook: deploy-prometheus.yml

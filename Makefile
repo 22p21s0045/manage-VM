@@ -3,7 +3,7 @@
 # ============================================================================
 
 .PHONY: help create-vm destroy-vm plan-vm init-terraform \
-        init-vm install-docker deploy-project deploy-monitoring \
+        init-vm install-docker deploy-project deploy-monitoring deploy-prometheus \
         setup-all clean status wait-for-ssh
 
 # Default target
@@ -28,7 +28,8 @@ help: ## Show this help message
 	@echo "  make init-vm         - Run all playbooks (site.yml)"
 	@echo "  make install-docker  - Install Docker only"
 	@echo "  make deploy-project  - Deploy project only"
-	@echo "  make deploy-monitoring - Deploy monitoring only"
+	@echo "  make deploy-monitoring - Deploy monitoring (Node Exporter)"
+	@echo "  make deploy-prometheus - Deploy Prometheus + Grafana to monitor-node"
 	@echo ""
 	@echo "Combined Workflows:"
 	@echo "  make setup-all       - Create VM + Initialize (full setup)"
@@ -96,6 +97,15 @@ deploy-monitoring: ## Deploy monitoring stack to VM
 		chmod 600 /root/.ssh/id_ed25519 && \
 		ansible-playbook -i inventory/hosts.ini playbooks/deploy-monitoring.yml"
 	@echo "✅ Monitoring deployed!"
+
+deploy-prometheus: ## Deploy Prometheus + Grafana to monitor-node
+	@echo "📈 Deploying Prometheus + Grafana..."
+	docker-compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook -i inventory/hosts.ini playbooks/deploy-prometheus.yml"
+	@echo "✅ Prometheus + Grafana deployed!"
 
 # ============================================================================
 # COMBINED WORKFLOWS

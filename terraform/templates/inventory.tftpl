@@ -1,7 +1,14 @@
-[proxmox_vms]
-%{ for vm in vms ~}
+[docker_nodes]
+%{ for vm in docker_vms ~}
 ${vm.name} ansible_host=${vm.default_ipv4_address != null ? vm.default_ipv4_address : regex("ip=([^/,]+)", vm.ipconfig0)[0]}
 %{ endfor ~}
+
+[monitor]
+${monitor_vm.name} ansible_host=${monitor_vm.default_ipv4_address != null ? monitor_vm.default_ipv4_address : regex("ip=([^/,]+)", monitor_vm.ipconfig0)[0]}
+
+[proxmox_vms:children]
+docker_nodes
+monitor
 
 [all:vars]
 ansible_user=${ssh_user}

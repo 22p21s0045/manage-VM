@@ -1,13 +1,9 @@
 ---
-- name: Deploy Monitoring Tools (Prometheus + Grafana)
-  hosts: all
+- name: Deploy Node Exporter
+  hosts: docker_nodes
   become: true
-  vars:
-    monitoring_repo: https://github.com/6MA-606/int531-monitoring-tools.git
-    monitoring_dest: /home/{{ ansible_user }}/int531-monitoring-tools
 
   tasks:
-    # Node Exporter Installation
     - name: Download Node Exporter
       get_url:
         url: https://github.com/prometheus/node_exporter/releases/download/v1.10.2/node_exporter-1.10.2.linux-amd64.tar.gz
@@ -20,34 +16,35 @@
         dest: /home/{{ ansible_user }}/
         remote_src: yes
 
-    - name: Start Node Exporter in background
-      shell: nohup /home/{{ ansible_user }}/node_exporter-1.10.2.linux-amd64/node_exporter > /dev/null 2>&1 &
-      async: 10
-      poll: 0
+    - name: Create Node Exporter systemd service
+      copy:
+        dest: /etc/systemd/system/node_exporter.service
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Node Exporter
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          User={{ ansible_user }}
+          Type=simple
+          ExecStart=/home/{{ ansible_user }}/node_exporter-1.10.2.linux-amd64/node_exporter
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Start and enable Node Exporter
+      systemd:
+        name: node_exporter
+        state: started
+        enabled: yes
 
     - name: Display Node Exporter access URL
       debug:
         msg: "Node Exporter is available at http://{{ ansible_host }}:9100/metrics"
-
-    # Git and Monitoring Tools
-    - name: Install git
-      apt:
-        name: git
-        state: present
-
-    - name: Clone monitoring project from GitHub
-      git:
-        repo: "{{ monitoring_repo }}"
-        dest: "{{ monitoring_dest }}"
-        clone: yes
-        update: yes
-      become_user: "{{ ansible_user }}"
-
-    - name: Run docker compose for monitoring
-      shell: docker compose -f monitoring.compose.yml up -d
-      args:
-        chdir: "{{ monitoring_dest }}"
-
-    - name: Display Grafana access URL
-      debug:
-        msg: "Grafana is available at http://{{ ansible_host }}:3000"

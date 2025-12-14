@@ -1,0 +1,186 @@
+---
+- name: Deploy Prometheus and Grafana to Monitor Node (Docker)
+  hosts: monitor
+  become: true
+  vars:
+    monitoring_dir: /opt/monitoring
+
+  tasks:
+    # ===========================================
+    # ENSURE DOCKER IS INSTALLED
+    # ===========================================
+    - name: Check if Docker is installed
+      command: docker --version
+      register: docker_check
+      ignore_errors: yes
+
+    - name: Install Docker if not present
+      block:
+        - name: Install required packages
+          apt:
+            name:
+              - apt-transport-https
+              - ca-certificates
+              - curl
+              - gnupg
+              - lsb-release
+            state: present
+            update_cache: yes
+
+        - name: Add Docker GPG key
+          shell: |
+            install -m 0755 -d /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+            chmod a+r /etc/apt/keyrings/docker.asc
+          args:
+            creates: /etc/apt/keyrings/docker.asc
+
+        - name: Add Docker repository
+          shell: |
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+          args:
+            creates: /etc/apt/sources.list.d/docker.list
+
+        - name: Install Docker
+          apt:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-compose-plugin
+            state: present
+            update_cache: yes
+
+        - name: Start and enable Docker
+          systemd:
+            name: docker
+            state: started
+            enabled: yes
+      when: docker_check.rc != 0
+
+    # ===========================================
+    # CREATE MONITORING STACK
+    # ===========================================
+    - name: Create monitoring directory
+      file:
+        path: "{{ monitoring_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Create prometheus data directory
+      file:
+        path: "{{ monitoring_dir }}/prometheus-data"
+        state: directory
+        mode: '0777'
+
+    - name: Create grafana data directory
+      file:
+        path: "{{ monitoring_dir }}/grafana-data"
+        state: directory
+        mode: '0777'
+
+    - name: Create Prometheus configuration
+      copy:
+        dest: "{{ monitoring_dir }}/prometheus.yml"
+        mode: '0644'
+        content: |
+          global:
+            scrape_interval: 15s
+            evaluation_interval: 15s
+
+          alerting:
+            alertmanagers:
+              - static_configs:
+                  - targets: []
+
+          rule_files: []
+
+          scrape_configs:
+            - job_name: 'prometheus'
+              static_configs:
+                - targets: ['localhost:9090']
+
+            - job_name: 'docker-nodes'
+              static_configs:
+                - targets: ['10.13.104.100:9100']
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: '([^:]+):.*'
+                  replacement: 'docker-node-1'
+
+    - name: Create Docker Compose file for monitoring stack
+      copy:
+        dest: "{{ monitoring_dir }}/docker-compose.yml"
+        mode: '0644'
+        content: |
+          services:
+            prometheus:
+              image: prom/prometheus:latest
+              container_name: prometheus
+              restart: unless-stopped
+              ports:
+                - "9090:9090"
+              volumes:
+                - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+                - ./prometheus-data:/prometheus
+              command:
+                - '--config.file=/etc/prometheus/prometheus.yml'
+                - '--storage.tsdb.path=/prometheus'
+                - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+                - '--web.console.templates=/usr/share/prometheus/consoles'
+                - '--web.enable-lifecycle'
+              networks:
+                - monitoring
+
+            grafana:
+              image: grafana/grafana:latest
+              container_name: grafana
+              restart: unless-stopped
+              ports:
+                - "3000:3000"
+              volumes:
+                - ./grafana-data:/var/lib/grafana
+              environment:
+                - GF_SECURITY_ADMIN_USER=admin
+                - GF_SECURITY_ADMIN_PASSWORD=admin
+                - GF_USERS_ALLOW_SIGN_UP=false
+              depends_on:
+                - prometheus
+              networks:
+                - monitoring
+
+          networks:
+            monitoring:
+              driver: bridge
+
+    - name: Start monitoring stack with Docker Compose
+      shell: |
+        cd {{ monitoring_dir }} && docker compose up -d
+      register: compose_result
+
+    - name: Wait for services to be ready
+      pause:
+        seconds: 10
+
+    - name: Check container status
+      shell: docker ps --format "table {{"{{"}}.Names{{"}}"}}\t{{"{{"}}.Status{{"}}"}}\t{{"{{"}}.Ports{{"}}"}}"
+      register: container_status
+
+    - name: Display container status
+      debug:
+        var: container_status.stdout_lines
+
+    # ===========================================
+    # DISPLAY ACCESS URLS
+    # ===========================================
+    - name: Display access URLs
+      debug:
+        msg:
+          - "=========================================="
+          - "Monitoring Stack Deployed via Docker!"
+          - "=========================================="
+          - "Prometheus: http://{{ ansible_host }}:9090"
+          - "Grafana: http://{{ ansible_host }}:3000"
+          - "Grafana login: admin / admin"
+          - "=========================================="
