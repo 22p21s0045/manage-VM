@@ -79,6 +79,40 @@
         state: directory
         mode: '0777'
 
+    - name: Create grafana config directory
+      file:
+        path: "{{ monitoring_dir }}/grafana-config"
+        state: directory
+        mode: '0755'
+
+    - name: Create Grafana configuration (grafana.ini)
+      copy:
+        dest: "{{ monitoring_dir }}/grafana-config/grafana.ini"
+        mode: '0644'
+        content: |
+          [server]
+          # The HTTP port to bind to
+          http_port = 3000
+          
+          [security]
+          # default admin user
+          admin_user = admin
+          admin_password = admin
+          
+          [users]
+          # disable user signup / registration
+          allow_sign_up = false
+          
+          # Add your custom Grafana configuration below:
+          # Example:
+          [smtp]
+          enabled = true
+          host = smtp.resend.com:465
+          user = resend
+          password = re_bQKcMuga_6dwMjnNWuJCUHwyCCCZoKsYo
+          from_address = sre.admin@zyxma.me
+          from_name = "SRE Alerts"
+
     - name: Create Prometheus configuration
       copy:
         dest: "{{ monitoring_dir }}/prometheus.yml"
@@ -141,10 +175,7 @@
                 - "3000:3000"
               volumes:
                 - ./grafana-data:/var/lib/grafana
-              environment:
-                - GF_SECURITY_ADMIN_USER=admin
-                - GF_SECURITY_ADMIN_PASSWORD=admin
-                - GF_USERS_ALLOW_SIGN_UP=false
+                - ./grafana-config/grafana.ini:/etc/grafana/grafana.ini:ro
               depends_on:
                 - prometheus
               networks:
@@ -156,7 +187,7 @@
 
     - name: Start monitoring stack with Docker Compose
       shell: |
-        cd {{ monitoring_dir }} && docker compose up -d
+        cd {{ monitoring_dir }} && docker compose up -d --force-recreate
       register: compose_result
 
     - name: Wait for services to be ready

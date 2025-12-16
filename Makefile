@@ -42,25 +42,25 @@ help: ## Show this help message
 
 init-terraform: ## Initialize Terraform
 	@echo "🔧 Initializing Terraform..."
-	cd terraform && docker-compose run --rm init
+	cd terraform && docker compose run --rm init
 
 plan-vm: ## Preview VM changes (terraform plan)
 	@echo "📋 Planning VM changes..."
-	cd terraform && docker-compose run --rm plan
+	cd terraform && docker compose run --rm plan
 
 create-vm: ## Create VM on Proxmox (terraform apply)
 	@echo "🚀 Creating VM..."
-	cd terraform && docker-compose run --rm apply
+	cd terraform && docker compose run --rm apply
 	@echo "✅ VM created successfully!"
 
 destroy-vm: ## Destroy VM (terraform destroy)
 	@echo "💥 Destroying VM..."
-	cd terraform && docker-compose run --rm destroy
+	cd terraform && docker compose run --rm destroy
 	@echo "✅ VM destroyed!"
 
 wait-for-ssh: ## Wait for VM SSH to be ready (with retry)
 	@echo "Waiting for VM SSH to be ready..."
-	docker-compose run --rm ansible sh scripts/wait-for-ssh.sh
+	docker compose run --rm ansible sh scripts/wait-for-ssh.sh
 
 # ============================================================================
 # ANSIBLE - VM Configuration
@@ -68,12 +68,12 @@ wait-for-ssh: ## Wait for VM SSH to be ready (with retry)
 
 init-vm: ## Run all Ansible playbooks (site.yml)
 	@echo "🔧 Initializing VM with all playbooks..."
-	docker-compose run --rm ansible
+	docker compose run --rm ansible
 	@echo "✅ VM initialization complete!"
 
 install-docker: ## Install Docker on VM
 	@echo "🐳 Installing Docker..."
-	docker-compose run --rm ansible sh -c "\
+	docker compose run --rm ansible sh -c "\
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
@@ -82,7 +82,7 @@ install-docker: ## Install Docker on VM
 
 deploy-project: ## Deploy project to VM
 	@echo "📦 Deploying project..."
-	docker-compose run --rm ansible sh -c "\
+	docker compose run --rm ansible sh -c "\
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
@@ -91,7 +91,7 @@ deploy-project: ## Deploy project to VM
 
 deploy-monitoring: ## Deploy monitoring stack to VM
 	@echo "📊 Deploying monitoring..."
-	docker-compose run --rm ansible sh -c "\
+	docker compose run --rm ansible sh -c "\
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
@@ -100,7 +100,7 @@ deploy-monitoring: ## Deploy monitoring stack to VM
 
 deploy-prometheus: ## Deploy Prometheus + Grafana to monitor-node
 	@echo "📈 Deploying Prometheus + Grafana..."
-	docker-compose run --rm ansible sh -c "\
+	docker compose run --rm ansible sh -c "\
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
