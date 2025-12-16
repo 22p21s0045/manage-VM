@@ -1,0 +1,20 @@
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_DISCORD_WEBHOOK_URL={{ vault_grafana_discord_webhook_url }}
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+      - ./grafana-config/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana-config/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - monitoring-network
+
+networks:
+  monitoring-network:
+    name: monitoring-network
+    external: true

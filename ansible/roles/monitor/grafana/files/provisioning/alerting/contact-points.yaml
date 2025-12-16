@@ -1,0 +1,30 @@
+apiVersion: 1
+contactPoints:
+    - orgId: 1
+      name: Discord Alert
+      receivers:
+        - uid: bf78uij3ac9a8e
+          type: discord
+          settings:
+            url: $GF_DISCORD_WEBHOOK_URL
+            use_discord_username: false
+          disableResolveMessage: false
+    - orgId: 1
+      name: Email Alert
+      receivers:
+        - uid: df78us5zm73lsa
+          type: email
+          settings:
+            addresses: 
+              - sittha.mani@outlook.com
+              - monkeytitle@hotmail.com
+            singleEmail: false
+          disableResolveMessage: false
+    # - orgId: 1
+    #   name: email receiver
+    #   receivers:
+    #     - uid: ""
+    #       type: email
+    #       settings:
+    #         addresses: <example@email.com>
+    #       disableResolveMessage: false

@@ -1,0 +1,60 @@
+- name: Check if monitoring network exists
+  community.docker.docker_network_info:
+    name: monitoring-network
+  register: monitoring_network_check
+  ignore_errors: true
+
+- name: Create monitoring docker network
+  community.docker.docker_network:
+    name: monitoring-network
+    state: present
+  when: monitoring_network_check.network is not defined or monitoring_network_check.network | length == 0
+
+- name: Create grafana data directory
+  file:
+    path: "{{ monitoring_dir }}/grafana-data"
+    state: directory
+    mode: '0777'
+
+- name: Create grafana config directory
+  file:
+    path: "{{ monitoring_dir }}/grafana-config"
+    state: directory
+    mode: '0755'
+
+- name: Copy all provisioning files
+  copy:
+    src: provisioning/
+    dest: "{{ monitoring_dir }}/grafana-config/provisioning/"
+    mode: '0644'
+  register: copy_result
+
+- name: Debug - Show copy result
+  debug:
+    var: copy_result
+
+# - name: Verify provisioning files on server
+#   shell: find {{ monitoring_dir }}/provisioning -type f
+#   register: provision_files
+
+# - name: Show provisioning files
+#   debug:
+#     var: provision_files.stdout_lines
+
+- name: Deploy Grafana configuration file
+  template:
+    src: grafana.ini.j2
+    dest: "{{ monitoring_dir }}/grafana-config/grafana.ini"
+    mode: '0644'
+  notify: Restart Prometheus container
+
+- name: Create Docker compose file for Grafana
+  template:
+    src: compose.yml.j2
+    dest: "{{ monitoring_dir }}/compose-grafana.yml"
+    mode: '0644'
+
+- name: Deploy Grafana using Docker Compose
+  shell: |
+    cd {{ monitoring_dir }} && docker compose -f compose-grafana.yml up -d --force-recreate
+  register: compose_result 

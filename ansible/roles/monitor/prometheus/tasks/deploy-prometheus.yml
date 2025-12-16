@@ -1,7 +1,14 @@
+- name: Check if monitoring network exists
+  community.docker.docker_network_info:
+    name: monitoring-network
+  register: monitoring_network_check
+  ignore_errors: true
+
 - name: Create monitoring docker network
   community.docker.docker_network:
     name: monitoring-network
     state: present
+  when: monitoring_network_check.network is not defined or monitoring_network_check.network | length == 0
 
 - name: Create monitoring directory
   file:

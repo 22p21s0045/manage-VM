@@ -135,6 +135,15 @@ deploy-prometheus: ## Deploy Prometheus
 		ansible-playbook -i inventory/hosts.ini site.yml --tags prometheus --ask-vault-pass"
 	@echo "✅ Prometheus deployed!"
 
+deploy-grafana: ## Deploy Grafana
+	@echo "📈 Deploying Grafana"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook -i inventory/hosts.ini site.yml --tags grafana --ask-vault-pass"
+	@echo "✅ Grafana deployed!"
+
 # ============================================================================
 # COMBINED WORKFLOWS
 # ============================================================================
