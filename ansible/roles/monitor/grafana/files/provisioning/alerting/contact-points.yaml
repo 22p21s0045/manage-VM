@@ -15,9 +15,7 @@ contactPoints:
         - uid: df78us5zm73lsa
           type: email
           settings:
-            addresses: 
-              - sittha.mani@outlook.com
-              - monkeytitle@hotmail.com
+            addresses: sittha.mani@outlook.com, monkeytitle@hotmail.com
             singleEmail: false
           disableResolveMessage: false
     # - orgId: 1

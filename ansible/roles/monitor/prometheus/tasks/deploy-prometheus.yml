@@ -39,4 +39,41 @@
   shell: |
     cd {{ monitoring_dir }} && docker compose -f compose-prometheus.yml up -d --force-recreate
   register: compose_result
+
+- name: Wait for services to be ready
+  pause:
+    seconds: 5
+
+- name: Check Prometheus container status
+  shell: docker ps --filter "name=prometheus" --format "table {{"{{"}}.Names{{"}}"}}\t{{"{{"}}.Status{{"}}"}}\t{{"{{"}}.Ports{{"}}"}}"
+  register: prometheus_container_status
+
+- name: Display Prometheus container status
+  debug:
+    var: prometheus_container_status.stdout_lines
+    
+- name: Ensure Prometheus is reachable
+  uri:
+    url: "http://localhost:9090/-/ready"
+    method: GET
+    status_code: 200
+  register: prometheus_http_check
+  retries: 5
+  delay: 10
+  until: prometheus_http_check.status == 200
+
+- name: Debug - Show Prometheus HTTP check result
+  debug:
+    var: prometheus_http_check
+
+- name: Display Prometheus HTTP check status
+  debug:
+    msg: "Prometheus is reachable with status code {{ prometheus_http_check.status }}"
+
+- name: Notify about Prometheus deployment
+  debug:
+    msg: "Prometheus has been deployed and is accessible at http://localhost:9090"
+
+
+
       

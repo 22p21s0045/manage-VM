@@ -12,6 +12,10 @@
     - group_vars/vault.yml
   roles:
     - role: monitor/prometheus
-      tags: prometheus
+      tags:
+        - prometheus
+        - monitoring
     - role: monitor/grafana
-      tags: grafana
+      tags: 
+        - grafana
+        - monitoring
