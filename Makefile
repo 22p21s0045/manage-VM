@@ -117,6 +117,15 @@ deploy-monitor: ## Deploy Monitor to VM
 # 		ansible-playbook -i inventory/hosts.ini playbooks/deploy-prometheus.yml"
 # 	@echo "✅ Prometheus + Grafana deployed!"
 
+setup-base-package: ## Install Docker on VM
+	@echo "🐳 Setup base package on all hosts"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook -i inventory/hosts.ini site.yml --tags base"
+	@echo "✅ Base package setup complete!"
+
 deploy-prometheus: ## Deploy Prometheus
 	@echo "📈 Deploying Prometheus"
 	docker compose run --rm ansible sh -c "\

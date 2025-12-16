@@ -1,9 +1,17 @@
-- name: Monitoring
-  hosts: monitor
-  
-  vars_files:
-  - group_vars/vault.yml
+- name: Setup Base Packages
+  hosts: all
+  become: true
+  roles:
+    - role: base
+      tags: base
 
+- name: Deploy Monitoring Stack
+  hosts: monitor
+  become: true
+  vars_files:
+    - group_vars/vault.yml
   roles:
     - role: monitor/prometheus
       tags: prometheus
+    - role: monitor/grafana
+      tags: grafana

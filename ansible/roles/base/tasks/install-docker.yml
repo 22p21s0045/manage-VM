@@ -46,3 +46,11 @@
         state: started
         enabled: yes
   when: docker_check.rc != 0
+
+- name: Add current user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
+  become: true
+  # when: docker_check.rc != 0
