@@ -1,0 +1,35 @@
+- name: Create monitoring docker network
+  community.docker.docker_network:
+    name: monitoring-network
+    state: present
+
+- name: Create monitoring directory
+  file:
+    path: "{{ monitoring_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create prometheus data directory
+  file:
+    path: "{{ monitoring_dir }}/prometheus-data"
+    state: directory
+    mode: '0777'
+
+- name: Deploy Prometheus configuration file
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ monitoring_dir }}/prometheus.yml"
+    mode: '0644'
+  notify: Restart Prometheus container
+
+- name: Create Docker compose file for Prometheus
+  template:
+    src: compose.yml.j2
+    dest: "{{ monitoring_dir }}/compose-prometheus.yml"
+    mode: '0644'
+
+- name: Deploy Prometheus using Docker Compose
+  shell: |
+    cd {{ monitoring_dir }} && docker compose -f compose-prometheus.yml up -d --force-recreate
+  register: compose_result
+      

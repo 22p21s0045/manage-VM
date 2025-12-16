@@ -1,0 +1,12 @@
+monitoring_dir: /opt/monitoring
+
+grafana_http_port: 3000
+
+grafana_admin_user: admin
+grafana_admin_password: "{{ vault_grafana_admin_password }}"
+
+grafana_smtp_host: smtp.resend.com:465
+grafana_smtp_user: resend
+grafana_smtp_password: "{{ vault_grafana_smtp_password }}"
+grafana_smtp_from_address: sre.admin@zyxma.me
+grafana_smtp_from_name: "SRE Alerts"

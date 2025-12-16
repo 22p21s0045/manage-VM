@@ -3,7 +3,7 @@
 # ============================================================================
 
 .PHONY: help create-vm destroy-vm plan-vm init-terraform \
-        init-vm install-docker deploy-project deploy-monitoring deploy-prometheus \
+        init-vm install-docker deploy-project deploy-monitoring deploy-monitor deploy-prometheus \
         setup-all clean status wait-for-ssh
 
 # Default target
@@ -29,6 +29,7 @@ help: ## Show this help message
 	@echo "  make install-docker  - Install Docker only"
 	@echo "  make deploy-project  - Deploy project only"
 	@echo "  make deploy-monitoring - Deploy monitoring (Node Exporter)"
+	@echo "  make deploy-monitor  - Deploy Monitor to VM"
 	@echo "  make deploy-prometheus - Deploy Prometheus + Grafana to monitor-node"
 	@echo ""
 	@echo "Combined Workflows:"
@@ -98,14 +99,32 @@ deploy-monitoring: ## Deploy monitoring stack to VM
 		ansible-playbook -i inventory/hosts.ini playbooks/deploy-monitoring.yml"
 	@echo "✅ Monitoring deployed!"
 
-deploy-prometheus: ## Deploy Prometheus + Grafana to monitor-node
-	@echo "📈 Deploying Prometheus + Grafana..."
+deploy-monitor: ## Deploy Monitor to VM
+	@echo "📊 Deploying monitor..."
 	docker compose run --rm ansible sh -c "\
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini playbooks/deploy-prometheus.yml"
-	@echo "✅ Prometheus + Grafana deployed!"
+		ansible-playbook -i inventory/hosts.ini site.yml --tags grafana --ask-vault-pass"
+	@echo "✅ Monitor deployed!"
+
+# deploy-prometheus: ## Deploy Prometheus + Grafana to monitor-node
+# 	@echo "📈 Deploying Prometheus + Grafana..."
+# 	docker compose run --rm ansible sh -c "\
+# 		mkdir -p /root/.ssh && \
+# 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+# 		chmod 600 /root/.ssh/id_ed25519 && \
+# 		ansible-playbook -i inventory/hosts.ini playbooks/deploy-prometheus.yml"
+# 	@echo "✅ Prometheus + Grafana deployed!"
+
+deploy-prometheus: ## Deploy Prometheus
+	@echo "📈 Deploying Prometheus"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook -i inventory/hosts.ini site.yml --tags prometheus --ask-vault-pass"
+	@echo "✅ Prometheus deployed!"
 
 # ============================================================================
 # COMBINED WORKFLOWS
