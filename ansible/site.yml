@@ -19,3 +19,12 @@
       tags: 
         - grafana
         - monitoring
+
+- name: Deploy Node Exporter
+  hosts: docker_nodes
+  become: true
+  roles:
+    - role: monitor/node_exporter
+      tags:
+        - node_exporter
+        - monitoring
