@@ -22,6 +22,11 @@
     state: directory
     mode: '0755'
 
+- name: Delete existing provisioning directory if it exists
+  file: 
+    path: "{{ monitoring_dir }}/grafana-config/provisioning"
+    state: absent
+
 - name: Copy all provisioning files
   copy:
     src: provisioning/
@@ -47,6 +52,28 @@
     dest: "{{ monitoring_dir }}/grafana-config/grafana.ini"
     mode: '0644'
   notify: Restart Prometheus container
+
+- name: Delete existing dashboards directory if it exists
+  file: 
+    path: "{{ monitoring_dir }}/grafana-dashboards"
+    state: absent
+
+- name: Create grafana dashboards directory
+  file: 
+    path: "{{ monitoring_dir }}/grafana-dashboards"
+    state: directory
+    mode: '0755'
+
+- name: Copy Grafana dashboard files
+  copy:
+    src: dashboards/
+    dest: "{{ monitoring_dir }}/grafana-dashboards/"
+    mode: '0644'
+  register: dashboard_copy_result
+
+- name: Debug - Show dashboard copy result
+  debug:
+    var: dashboard_copy_result
 
 - name: Create Docker compose file for Grafana
   template:

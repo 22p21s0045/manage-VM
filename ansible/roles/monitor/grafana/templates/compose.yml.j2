@@ -11,6 +11,7 @@ services:
       - ./grafana-data:/var/lib/grafana
       - ./grafana-config/grafana.ini:/etc/grafana/grafana.ini:ro
       - ./grafana-config/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana-dashboards:/var/lib/grafana/dashboards:ro
     networks:
       - monitoring-network
 
