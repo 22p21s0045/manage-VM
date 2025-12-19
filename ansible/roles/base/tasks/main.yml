@@ -1,2 +1,2 @@
 - import_tasks: install-docker.yml
-  
+  tags: ['setup-base-packages', 'setup-docker']

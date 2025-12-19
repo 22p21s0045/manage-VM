@@ -1,0 +1,30 @@
+---
+- name: Stop and remove Prometheus container using compose
+  shell: |
+    cd {{ monitoring_dir }} && docker compose -f compose-prometheus.yml down
+  ignore_errors: true
+
+- name: Remove Prometheus container (fallback)
+  community.docker.docker_container:
+    name: prometheus
+    state: absent
+  ignore_errors: true
+
+- name: Remove Prometheus data directory
+  file:
+    path: "{{ monitoring_dir }}/prometheus-data"
+    state: absent
+
+- name: Remove Prometheus config file
+  file:
+    path: "{{ monitoring_dir }}/prometheus.yml"
+    state: absent
+
+- name: Remove Prometheus compose file
+  file:
+    path: "{{ monitoring_dir }}/compose-prometheus.yml"
+    state: absent
+
+- name: Display cleanup completion message
+  debug:
+    msg: "✅ Prometheus cleanup completed successfully"

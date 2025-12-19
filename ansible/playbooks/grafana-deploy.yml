@@ -1,0 +1,7 @@
+- name: Deploy Grafana on monitoring hosts
+  hosts: monitor
+  become: true
+  vars_files:
+    - ../inventory/group_vars/grafana_deploy_vault.yml
+  roles:
+    - role: grafana_deploy

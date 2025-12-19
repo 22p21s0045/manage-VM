@@ -1,0 +1,5 @@
+- name: Clean Grafana on monitoring hosts
+  hosts: monitor
+  become: true
+  roles:
+    - role: grafana_clean

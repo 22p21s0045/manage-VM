@@ -123,16 +123,16 @@ setup-base-package: ## Install Docker on VM
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini site.yml --tags base"
+		ansible-playbook playbooks/base-package-setup.yml"
 	@echo "✅ Base package setup complete!"
-
-deploy-monitoring: ## Deploy Monitor Node Exporter
+	
+deploy-monitor-stack: ## Deploy Monitor Node Exporter
 	@echo "📊 Deploying Monitoring Service"
 	docker compose run --rm ansible sh -c "\
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini site.yml --tags monitoring --ask-vault-pass"
+		ansible-playbook -i inventory/hosts.ini site.yml --tags "deploy-grafana,deploy-node-exporter,deploy-prometheus" --ask-vault-pass"
 	@echo "✅ Monitor Node Exporter deployed!"
 
 deploy-prometheus: ## Deploy Prometheus
@@ -141,7 +141,7 @@ deploy-prometheus: ## Deploy Prometheus
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini site.yml --tags prometheus --ask-vault-pass"
+		ansible-playbook playbooks/prometheus-deploy.yml"
 	@echo "✅ Prometheus deployed!"
 
 deploy-grafana: ## Deploy Grafana
@@ -150,7 +150,7 @@ deploy-grafana: ## Deploy Grafana
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini site.yml --tags grafana --ask-vault-pass"
+		ansible-playbook playbooks/grafana-deploy.yml --ask-vault-pass"
 	@echo "✅ Grafana deployed!"
 
 deploy-node-exporter: ## Deploy Node Exporter
@@ -159,8 +159,53 @@ deploy-node-exporter: ## Deploy Node Exporter
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini site.yml --tags node_exporter --ask-vault-pass"
+		ansible-playbook playbooks/node-exporter-deploy.yml"
 	@echo "✅ Node Exporter deployed!"
+
+clean-monitor-stack: ## Clean Monitor Node Exporter
+	@echo "🧹 Cleaning Monitoring Service"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook -i inventory/hosts.ini site.yml --tags "clean-grafana,clean-node-exporter,clean-prometheus" --ask-vault-pass"
+	@echo "✅ Monitor Node Exporter cleaned!"
+
+clean-prometheus: ## Clean Prometheus
+	@echo "🧹 Cleaning Prometheus"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook playbooks/prometheus-clean.yml"
+	@echo "✅ Prometheus cleaned!"
+
+clean-grafana: ## Clean Grafana
+	@echo "🧹 Cleaning Grafana"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook playbooks/grafana-clean.yml"
+	@echo "✅ Grafana cleaned!"
+
+clean-node-exporter: ## Clean Node Exporter
+	@echo "🧹 Cleaning Node Exporter"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook playbooks/node-exporter-clean.yml"
+	@echo "✅ Node Exporter cleaned!"
+
+run-site: ## Run site.yml playbook
+	@echo "🔧 Running site.yml playbook..."
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook playbooks/site.yml --ask-vault-pass"
+	@echo "✅ site.yml playbook run complete!"
 
 # ============================================================================
 # COMBINED WORKFLOWS

@@ -27,7 +27,7 @@
     src: prometheus.yml.j2
     dest: "{{ monitoring_dir }}/prometheus.yml"
     mode: '0644'
-  notify: Restart Prometheus container
+  # notify: Restart Prometheus container
 
 - name: Create Docker compose file for Prometheus
   template:

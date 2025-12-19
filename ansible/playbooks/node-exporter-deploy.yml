@@ -1,0 +1,5 @@
+- name: Deploy Node Exporter on service hosts
+  hosts: service
+  become: true
+  roles:
+    - role: node_exporter_deploy

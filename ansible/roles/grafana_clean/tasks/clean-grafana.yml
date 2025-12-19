@@ -1,0 +1,35 @@
+---
+- name: Stop and remove Grafana container using compose
+  shell: |
+    cd {{ monitoring_dir }} && docker compose -f compose-grafana.yml down
+  ignore_errors: true
+
+- name: Remove Grafana container (fallback)
+  community.docker.docker_container:
+    name: grafana
+    state: absent
+  ignore_errors: true
+
+- name: Remove Grafana data directory
+  file:
+    path: "{{ monitoring_dir }}/grafana-data"
+    state: absent
+
+- name: Remove Grafana config directory
+  file:
+    path: "{{ monitoring_dir }}/grafana-config"
+    state: absent
+
+- name: Remove Grafana dashboards directory
+  file:
+    path: "{{ monitoring_dir }}/grafana-dashboards"
+    state: absent
+
+- name: Remove Grafana compose file
+  file:
+    path: "{{ monitoring_dir }}/compose-grafana.yml"
+    state: absent
+
+- name: Display cleanup completion message
+  debug:
+    msg: "✅ Grafana cleanup completed successfully"

@@ -1,0 +1,30 @@
+---
+- name: Stop and disable Node Exporter service
+  systemd:
+    name: node_exporter
+    state: stopped
+    enabled: no
+  ignore_errors: true
+
+- name: Remove Node Exporter systemd service file
+  file:
+    path: /etc/systemd/system/node_exporter.service
+    state: absent
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Remove Node Exporter binary directory
+  file:
+    path: /home/{{ ansible_user }}/node_exporter-1.10.2.linux-amd64
+    state: absent
+
+- name: Remove Node Exporter tarball
+  file:
+    path: /home/{{ ansible_user }}/node_exporter-1.10.2.linux-amd64.tar.gz
+    state: absent
+
+- name: Display cleanup completion message
+  debug:
+    msg: "✅ Node Exporter cleanup completed successfully"

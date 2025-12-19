@@ -1,0 +1,5 @@
+- name: Setup Base Packages on all hosts
+  hosts: all
+  become: true
+  roles:
+    - role: base
