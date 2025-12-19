@@ -1,0 +1,15 @@
+---
+- name: Stop and remove project containers using docker compose
+  shell: docker compose -f docker-compose.prod.yml down
+  args:
+    chdir: "{{ project_dest }}"
+  ignore_errors: true
+
+- name: Remove project directory
+  file:
+    path: "{{ project_dest }}"
+    state: absent
+
+- name: Display cleanup completion message
+  debug:
+    msg: "✅ Project cleanup completed successfully"

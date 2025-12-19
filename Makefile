@@ -162,6 +162,15 @@ deploy-node-exporter: ## Deploy Node Exporter
 		ansible-playbook playbooks/node-exporter-deploy.yml"
 	@echo "✅ Node Exporter deployed!"
 
+deploy-project: ## Deploy project to VM
+	@echo "📦 Deploying project..."
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook playbooks/project-deploy.yml"
+	@echo "✅ Project deployed!"
+
 clean-monitor-stack: ## Clean Monitor Node Exporter
 	@echo "🧹 Cleaning Monitoring Service"
 	docker compose run --rm ansible sh -c "\
@@ -197,6 +206,15 @@ clean-node-exporter: ## Clean Node Exporter
 		chmod 600 /root/.ssh/id_ed25519 && \
 		ansible-playbook playbooks/node-exporter-clean.yml"
 	@echo "✅ Node Exporter cleaned!"
+
+clean-project: ## Clean project from VM
+	@echo "🧹 Cleaning project..."
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook playbooks/project-clean.yml"
+	@echo "✅ Project cleaned!"
 
 run-site: ## Run site.yml playbook
 	@echo "🔧 Running site.yml playbook..."

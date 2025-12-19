@@ -1,0 +1,2 @@
+project_repo: https://github.com/22p21s0045/project-for-sre-v2.git
+project_dest: /home/{{ ansible_user }}/int531-demo-project

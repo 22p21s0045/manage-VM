@@ -1,0 +1,5 @@
+- import_tasks: install-docker.yml
+  # tags: ['setup-base-packages', 'setup-docker']
+
+- import_tasks: install-git.yml
+  # tags: ['setup-base-packages', 'setup-git']

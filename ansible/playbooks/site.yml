@@ -10,5 +10,7 @@
 
 - import_playbook: grafana-deploy.yml
 
+- import_playbook: project-deploy.yml
+
 # - name: Deploy Project on Docker Nodes
 #   import_playbook: deploy-project.yml

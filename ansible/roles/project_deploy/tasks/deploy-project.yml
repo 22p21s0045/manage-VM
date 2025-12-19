@@ -1,0 +1,18 @@
+- name: Install git
+  apt:
+    name: git
+    state: present
+
+- name: Clone demo project from GitHub
+  git:
+    repo: "{{ project_repo }}"
+    dest: "{{ project_dest }}"
+    clone: yes
+    update: yes
+  become_user: "{{ ansible_user }}"
+
+- name: Run docker compose
+  shell: docker compose -f docker-compose.prod.yml up -d
+  args:
+    chdir: "{{ project_dest }}"
+  ignore_errors: true

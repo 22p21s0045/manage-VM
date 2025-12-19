@@ -1,0 +1,5 @@
+- name: Deploy Project on Service Nodes
+  hosts: service
+  become: true
+  roles:
+    - role: project_deploy
