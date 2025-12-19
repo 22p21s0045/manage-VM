@@ -4,8 +4,11 @@
 
 .PHONY: help create-vm destroy-vm plan-vm init-terraform wait-for-ssh \
         init-vm setup-base-package \
-        deploy-monitor-stack deploy-prometheus deploy-grafana deploy-node-exporter deploy-project \
-        clean-monitor-stack clean-prometheus clean-grafana clean-node-exporter clean-project \
+				deploy-monitor-stack clean-monitor-stack \
+        deploy-prometheus deploy-grafana deploy-node-exporter deploy-project \
+				update-grafana \
+        clean-prometheus clean-grafana clean-node-exporter clean-project \
+				clean-vm \
         setup-all clean
 
 # Default target
@@ -31,22 +34,26 @@ help: ## Show this help message
 	@echo "  make setup-base-package  - Setup base packages"
 	@echo ""
 	@echo "Deploy:"
-	@echo "  make deploy-monitor-stack  - Deploy all monitoring"
 	@echo "  make deploy-prometheus     - Deploy Prometheus"
 	@echo "  make deploy-grafana        - Deploy Grafana"
 	@echo "  make deploy-node-exporter  - Deploy Node Exporter"
 	@echo "  make deploy-project        - Deploy project"
 	@echo ""
+	@echo "Update:"
+	@echo "  make update-grafana        - Deploy Grafana"
+	@echo ""
 	@echo "Clean:"
-	@echo "  make clean-monitor-stack   - Clean all monitoring"
 	@echo "  make clean-prometheus      - Clean Prometheus"
 	@echo "  make clean-grafana         - Clean Grafana"
 	@echo "  make clean-node-exporter   - Clean Node Exporter"
 	@echo "  make clean-project         - Clean project"
 	@echo ""
 	@echo "Combined Workflows:"
-	@echo "  make setup-all           - Create VM + Initialize (full setup)"
-	@echo "  make clean               - Destroy everything"
+	@echo "  make setup-all            - Create VM + Initialize (full setup)"
+	@echo "  make clean                - Destroy everything"
+	@echo "  make clean-vm    	       - Clean VM (project + monitoring)"
+	@echo "  make deploy-monitor-stack - Deploy all monitoring components"
+	@echo "  make clean-monitor-stack  - Clean all monitoring components"
 	@echo ""
 
 # ============================================================================
@@ -96,15 +103,6 @@ setup-base-package: ## Install Docker on VM
 		chmod 600 /root/.ssh/id_ed25519 && \
 		ansible-playbook playbooks/base-package-setup.yml"
 	@echo "✅ Base package setup complete!"
-	
-deploy-monitor-stack: ## Deploy Monitor Node Exporter
-	@echo "📊 Deploying Monitoring Service"
-	docker compose run --rm ansible sh -c "\
-		mkdir -p /root/.ssh && \
-		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
-		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini site.yml --tags "deploy-grafana,deploy-node-exporter,deploy-prometheus" --ask-vault-pass"
-	@echo "✅ Monitor Node Exporter deployed!"
 
 deploy-prometheus: ## Deploy Prometheus
 	@echo "📈 Deploying Prometheus"
@@ -142,14 +140,14 @@ deploy-project: ## Deploy project to VM
 		ansible-playbook playbooks/project-deploy.yml"
 	@echo "✅ Project deployed!"
 
-clean-monitor-stack: ## Clean Monitor Node Exporter
-	@echo "🧹 Cleaning Monitoring Service"
+update-grafana: ## Update Grafana deployment
+	@echo "🔄 Updating Grafana deployment..."
 	docker compose run --rm ansible sh -c "\
 		mkdir -p /root/.ssh && \
 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
 		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini site.yml --tags "clean-grafana,clean-node-exporter,clean-prometheus" --ask-vault-pass"
-	@echo "✅ Monitor Node Exporter cleaned!"
+		ansible-playbook playbooks/grafana-deploy.yml --ask-vault-pass --tags update"
+	@echo "✅ Grafana update complete!"
 
 clean-prometheus: ## Clean Prometheus
 	@echo "🧹 Cleaning Prometheus"
@@ -208,3 +206,12 @@ setup-all: init-terraform create-vm wait-for-ssh init-vm ## Full setup: Create V
 
 clean: destroy-vm ## Clean up: Destroy VM
 	@echo "🧹 Cleanup complete!"
+
+deploy-monitor-stack: deploy-prometheus deploy-grafana deploy-node-exporter ## Deploy all monitoring components
+	@echo "🚀 Monitoring stack deployment complete!"
+
+clean-monitor-stack: clean-prometheus clean-grafana clean-node-exporter ## Clean all monitoring components
+	@echo "🧹 Monitoring stack cleanup complete!"
+
+clean-vm: clean-project clean-prometheus clean-grafana clean-node-exporter
+	@echo "🧹 Clean VM complete!"

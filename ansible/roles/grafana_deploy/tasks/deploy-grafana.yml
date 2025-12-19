@@ -21,11 +21,13 @@
     path: "{{ monitoring_dir }}/grafana-config"
     state: directory
     mode: '0755'
+  tags: ["update_config", "update"]
 
 - name: Delete existing provisioning directory if it exists
   file: 
     path: "{{ monitoring_dir }}/grafana-config/provisioning"
     state: absent
+  tags: ["update_provisioning", "update"]
 
 - name: Copy all provisioning files
   copy:
@@ -33,28 +35,33 @@
     dest: "{{ monitoring_dir }}/grafana-config/provisioning/"
     mode: '0644'
   register: copy_result
+  tags: ["update_provisioning", "update"]
 
 - name: Debug - Show copy result
   debug:
     var: copy_result
+  tags: ["update_provisioning", "update"]
 
 - name: Deploy Grafana configuration file
   template:
     src: grafana.ini.j2
     dest: "{{ monitoring_dir }}/grafana-config/grafana.ini"
     mode: '0644'
+  tags: ["update_config", "update"]
   # notify: Restart Grafana container
 
 - name: Delete existing dashboards directory if it exists
   file: 
     path: "{{ monitoring_dir }}/grafana-dashboards"
     state: absent
+  tags: ["update_dashboards", "update"]
 
 - name: Create grafana dashboards directory
   file: 
     path: "{{ monitoring_dir }}/grafana-dashboards"
     state: directory
     mode: '0755'
+  tags: ["update_dashboards", "update"]
 
 - name: Copy Grafana dashboard files
   copy:
@@ -62,16 +69,31 @@
     dest: "{{ monitoring_dir }}/grafana-dashboards/"
     mode: '0644'
   register: dashboard_copy_result
+  tags: ["update_dashboards", "update"]
 
 - name: Debug - Show dashboard copy result
   debug:
     var: dashboard_copy_result
+  tags: ["update_dashboards", "update"]
 
 - name: Create Docker compose file for Grafana
   template:
     src: compose.yml.j2
     dest: "{{ monitoring_dir }}/compose-grafana.yml"
     mode: '0644'
+
+- name: Check existing Grafana container status
+  shell: docker ps --filter "name=grafana" --format "table {{"{{"}}.Names{{"}}"}}\t{{"{{"}}.Status{{"}}"}}\t{{"{{"}}.Ports{{"}}"}}"
+  register: grafana_container_status
+  ignore_errors: true
+  tags: ["update", "update_container"]
+
+- name: Restart existing Grafana container if it exists
+  shell: |
+    cd {{ monitoring_dir }} && docker compose -f compose-grafana.yml restart grafana
+  when: grafana_container_status.stdout is defined and 'grafana' in grafana_container_status.stdout
+  ignore_errors: true
+  tags: ["update", "update_container"]
 
 - name: Deploy Grafana using Docker Compose
   shell: |
@@ -82,7 +104,7 @@
   pause:
     seconds: 5
 
-- name: Check Grafana container status
+- name: Check Grafana container status after deployment
   shell: docker ps --filter "name=grafana" --format "table {{"{{"}}.Names{{"}}"}}\t{{"{{"}}.Status{{"}}"}}\t{{"{{"}}.Ports{{"}}"}}"
   register: grafana_container_status
 
