@@ -2,9 +2,11 @@
 # Makefile for VM Management with Terraform and Ansible
 # ============================================================================
 
-.PHONY: help create-vm destroy-vm plan-vm init-terraform \
-        init-vm install-docker deploy-project deploy-monitoring deploy-monitor deploy-prometheus \
-        setup-all clean status wait-for-ssh
+.PHONY: help create-vm destroy-vm plan-vm init-terraform wait-for-ssh \
+        init-vm setup-base-package \
+        deploy-monitor-stack deploy-prometheus deploy-grafana deploy-node-exporter deploy-project \
+        clean-monitor-stack clean-prometheus clean-grafana clean-node-exporter clean-project \
+        setup-all clean
 
 # Default target
 .DEFAULT_GOAL := help
@@ -19,22 +21,32 @@ help: ## Show this help message
 	@echo "=============================================="
 	@echo ""
 	@echo "Terraform (VM Creation):"
-	@echo "  make init-terraform  - Initialize Terraform"
-	@echo "  make plan-vm         - Preview VM changes"
-	@echo "  make create-vm       - Create VM on Proxmox"
-	@echo "  make destroy-vm      - Destroy VM"
+	@echo "  make init-terraform      - Initialize Terraform"
+	@echo "  make plan-vm             - Preview VM changes"
+	@echo "  make create-vm           - Create VM on Proxmox"
+	@echo "  make destroy-vm          - Destroy VM"
 	@echo ""
-	@echo "Ansible (VM Configuration):"
-	@echo "  make init-vm         - Run all playbooks (site.yml)"
-	@echo "  make install-docker  - Install Docker only"
-	@echo "  make deploy-project  - Deploy project only"
-	@echo "  make deploy-monitoring - Deploy monitoring (Node Exporter)"
-	@echo "  make deploy-monitor  - Deploy Monitor to VM"
-	@echo "  make deploy-prometheus - Deploy Prometheus + Grafana to monitor-node"
+	@echo "Base Setup:"
+	@echo "  make init-vm             - Run site.yml (full setup)"
+	@echo "  make setup-base-package  - Setup base packages"
+	@echo ""
+	@echo "Deploy:"
+	@echo "  make deploy-monitor-stack  - Deploy all monitoring"
+	@echo "  make deploy-prometheus     - Deploy Prometheus"
+	@echo "  make deploy-grafana        - Deploy Grafana"
+	@echo "  make deploy-node-exporter  - Deploy Node Exporter"
+	@echo "  make deploy-project        - Deploy project"
+	@echo ""
+	@echo "Clean:"
+	@echo "  make clean-monitor-stack   - Clean all monitoring"
+	@echo "  make clean-prometheus      - Clean Prometheus"
+	@echo "  make clean-grafana         - Clean Grafana"
+	@echo "  make clean-node-exporter   - Clean Node Exporter"
+	@echo "  make clean-project         - Clean project"
 	@echo ""
 	@echo "Combined Workflows:"
-	@echo "  make setup-all       - Create VM + Initialize (full setup)"
-	@echo "  make clean           - Destroy everything"
+	@echo "  make setup-all           - Create VM + Initialize (full setup)"
+	@echo "  make clean               - Destroy everything"
 	@echo ""
 
 # ============================================================================
@@ -68,54 +80,13 @@ wait-for-ssh: ## Wait for VM SSH to be ready (with retry)
 # ============================================================================
 
 init-vm: ## Run all Ansible playbooks (site.yml)
-	@echo "🔧 Initializing VM with all playbooks..."
-	docker compose run --rm ansible
+	@echo "🔧 Initializing VM with site.yml playbook"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook playbooks/site.yml --ask-vault-pass"
 	@echo "✅ VM initialization complete!"
-
-install-docker: ## Install Docker on VM
-	@echo "🐳 Installing Docker..."
-	docker compose run --rm ansible sh -c "\
-		mkdir -p /root/.ssh && \
-		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
-		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini playbooks/install-docker.yml"
-	@echo "✅ Docker installed!"
-
-deploy-project: ## Deploy project to VM
-	@echo "📦 Deploying project..."
-	docker compose run --rm ansible sh -c "\
-		mkdir -p /root/.ssh && \
-		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
-		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini playbooks/deploy-project.yml"
-	@echo "✅ Project deployed!"
-
-deploy-monitoring: ## Deploy monitoring stack to VM
-	@echo "📊 Deploying monitoring..."
-	docker compose run --rm ansible sh -c "\
-		mkdir -p /root/.ssh && \
-		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
-		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini playbooks/deploy-monitoring.yml"
-	@echo "✅ Monitoring deployed!"
-
-deploy-monitor: ## Deploy Monitor to VM
-	@echo "📊 Deploying monitor..."
-	docker compose run --rm ansible sh -c "\
-		mkdir -p /root/.ssh && \
-		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
-		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook -i inventory/hosts.ini site.yml --tags grafana --ask-vault-pass"
-	@echo "✅ Monitor deployed!"
-
-# deploy-prometheus: ## Deploy Prometheus + Grafana to monitor-node
-# 	@echo "📈 Deploying Prometheus + Grafana..."
-# 	docker compose run --rm ansible sh -c "\
-# 		mkdir -p /root/.ssh && \
-# 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
-# 		chmod 600 /root/.ssh/id_ed25519 && \
-# 		ansible-playbook -i inventory/hosts.ini playbooks/deploy-prometheus.yml"
-# 	@echo "✅ Prometheus + Grafana deployed!"
 
 setup-base-package: ## Install Docker on VM
 	@echo "🐳 Setup base package on all hosts"
@@ -216,14 +187,14 @@ clean-project: ## Clean project from VM
 		ansible-playbook playbooks/project-clean.yml"
 	@echo "✅ Project cleaned!"
 
-run-site: ## Run site.yml playbook
-	@echo "🔧 Running site.yml playbook..."
-	docker compose run --rm ansible sh -c "\
-		mkdir -p /root/.ssh && \
-		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
-		chmod 600 /root/.ssh/id_ed25519 && \
-		ansible-playbook playbooks/site.yml --ask-vault-pass"
-	@echo "✅ site.yml playbook run complete!"
+# run-site: ## Run site.yml playbook
+# 	@echo "🔧 Running site.yml playbook..."
+# 	docker compose run --rm ansible sh -c "\
+# 		mkdir -p /root/.ssh && \
+# 		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+# 		chmod 600 /root/.ssh/id_ed25519 && \
+# 		ansible-playbook playbooks/site.yml --ask-vault-pass"
+# 	@echo "✅ site.yml playbook run complete!"
 
 # ============================================================================
 # COMBINED WORKFLOWS
