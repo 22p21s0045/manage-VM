@@ -3,7 +3,7 @@
   hosts: docker_nodes
   become: true
   vars:
-    project_repo: https://github.com/22p21s0045/int531-demo-project.git
+    project_repo: https://github.com/22p21s0045/project-for-sre-v2.git
     project_dest: /home/{{ ansible_user }}/int531-demo-project
 
   tasks:
@@ -21,7 +21,7 @@
       become_user: "{{ ansible_user }}"
 
     - name: Run docker compose
-      shell: docker compose up -d
+      shell: docker compose -f docker-compose.prod.yml up -d
       args:
         chdir: "{{ project_dest }}"
       ignore_errors: yes
