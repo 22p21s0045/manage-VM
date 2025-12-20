@@ -6,6 +6,8 @@
 
 - import_playbook: node-exporter-deploy.yml
 
+- import_playbook: blackbox-deploy.yml
+
 - import_playbook: prometheus-deploy.yml
 
 - import_playbook: grafana-deploy.yml

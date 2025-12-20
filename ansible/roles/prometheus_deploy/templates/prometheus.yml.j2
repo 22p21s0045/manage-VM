@@ -14,7 +14,7 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'docker-nodes'
+  - job_name: 'service-node-metrics'
     static_configs:
       - targets: ['10.13.104.100:9100']
     relabel_configs:
@@ -22,3 +22,38 @@ scrape_configs:
         target_label: instance
         regex: '([^:]+):.*'
         replacement: 'service-node-1'
+    
+  - job_name: 'backend-metrics'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['10.13.104.100:3000']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+):.*'
+        replacement: 'backend-1'
+
+  - job_name: 'nginx-proxy-metrics'
+    static_configs:
+      - targets: ['10.13.104.100:9113']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+):.*'
+        replacement: 'nginx-proxy-1'
+
+  - job_name: "blackbox-http"
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://10.13.104.100
+          - http://10.13.104.100:3000/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

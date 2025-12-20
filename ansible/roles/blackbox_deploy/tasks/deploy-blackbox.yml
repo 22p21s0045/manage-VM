@@ -1,0 +1,77 @@
+- name: Check if monitoring network exists
+  community.docker.docker_network_info:
+    name: monitoring-network
+  register: monitoring_network_check
+  ignore_errors: true
+
+- name: Create monitoring docker network
+  community.docker.docker_network:
+    name: monitoring-network
+    state: present
+  when: monitoring_network_check.network is none or monitoring_network_check.network | length == 0
+
+- name: Create blackbox config directory
+  file:
+    path: "{{ monitoring_dir }}/blackbox-config"
+    state: directory
+    mode: '0755'
+
+- name: Deploy Blackbox configuration file
+  template:
+    src: blackbox.yml.j2
+    dest: "{{ monitoring_dir }}/blackbox-config/blackbox.yml"
+    mode: '0644'
+  tags: ["update_config", "update"]
+
+- name: Create Docker compose file for Blackbox
+  template:
+    src: compose.yml.j2
+    dest: "{{ monitoring_dir }}/compose-blackbox.yml"
+    mode: '0644'
+
+- name: Restart existing Blackbox container if it exists
+  shell: |
+    cd {{ monitoring_dir }} && docker compose -f compose-blackbox.yml restart blackbox-exporter
+  when: blackbox_container_status.stdout is defined and 'blackbox-exporter' in blackbox_container_status.stdout
+  ignore_errors: true
+
+- name: Deploy Blackbox using Docker Compose
+  shell: |
+    cd {{ monitoring_dir }} && docker compose -f compose-blackbox.yml up -d --force-recreate
+  register: compose_result 
+
+- name: Wait for services to be ready
+  pause:
+    seconds: 5
+
+- name: Check Blackbox container status after deployment
+  shell: docker ps --filter "name=blackbox-exporter" --format "table {{"{{"}}.Names{{"}}"}}\t{{"{{"}}.Status{{"}}"}}\t{{"{{"}}.Ports{{"}}"}}"
+  register: blackbox_container_status
+- name: Display Blackbox container status
+  debug:
+    var: blackbox_container_status.stdout_lines
+    
+- name: Ensure Blackbox is reachable
+  uri:
+    url: "http://localhost:9115"
+    method: GET
+    status_code: 200
+  register: blackbox_http_check
+  retries: 5
+  delay: 10
+  until: blackbox_http_check.status == 200
+
+- name: Debug - Show Blackbox HTTP check result
+  debug:
+    var: blackbox_http_check
+
+- name: Display Blackbox HTTP check status
+  debug:
+    msg: "Blackbox is reachable with status code {{ blackbox_http_check.status }}"
+
+- name: Notify about Blackbox deployment
+  debug:
+    msg: "Blackbox has been deployed and is accessible at http://localhost:3000
+          Default credentials are admin/admin. Please change the password upon first login."
+
+

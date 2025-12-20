@@ -5,7 +5,7 @@
 .PHONY: help create-vm destroy-vm plan-vm init-terraform wait-for-ssh \
         init-vm setup-base-package \
 				deploy-monitor-stack clean-monitor-stack \
-        deploy-prometheus deploy-grafana deploy-node-exporter deploy-project \
+        deploy-prometheus deploy-grafana deploy-node-exporter deploy-project deploy-blackbox \
 				update-grafana \
         clean-prometheus clean-grafana clean-node-exporter clean-project \
 				clean-vm \
@@ -37,6 +37,7 @@ help: ## Show this help message
 	@echo "  make deploy-prometheus     - Deploy Prometheus"
 	@echo "  make deploy-grafana        - Deploy Grafana"
 	@echo "  make deploy-node-exporter  - Deploy Node Exporter"
+	@echo "  make deploy-blackbox       - Deploy Blackbox Exporter"
 	@echo "  make deploy-project        - Deploy project"
 	@echo ""
 	@echo "Update:"
@@ -130,6 +131,15 @@ deploy-node-exporter: ## Deploy Node Exporter
 		chmod 600 /root/.ssh/id_ed25519 && \
 		ansible-playbook playbooks/node-exporter-deploy.yml"
 	@echo "✅ Node Exporter deployed!"
+
+deploy-blackbox: ## Deploy Blackbox Exporter
+	@echo "📈 Deploying Blackbox Exporter"
+	docker compose run --rm ansible sh -c "\
+		mkdir -p /root/.ssh && \
+		cp /tmp/id_ed25519 /root/.ssh/id_ed25519 && \
+		chmod 600 /root/.ssh/id_ed25519 && \
+		ansible-playbook playbooks/blackbox-deploy.yml"
+	@echo "✅ Blackbox Exporter deployed!"
 
 deploy-project: ## Deploy project to VM
 	@echo "📦 Deploying project..."

@@ -1,0 +1,5 @@
+- name: Deploy Blackbox Exporter on monitoring hosts
+  hosts: monitor
+  become: true
+  roles:
+    - role: blackbox_deploy
